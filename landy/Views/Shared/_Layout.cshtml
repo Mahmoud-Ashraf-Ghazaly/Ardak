@@ -1,0 +1,113 @@
+@inject Ardak.Application.Interfaces.ICurrentUserService CurrentUser
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Ardak Internal System</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/landy.styles.css" asp-append-version="true" />
+</head>
+<body class="bg-light">
+    <header>
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark border-bottom shadow-sm mb-4">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand fw-bold text-white d-flex align-items-center" asp-controller="Account" asp-action="Login">
+                    <span class="badge bg-primary me-2">Ardak</span>
+                    <span>Internal Real-Estate</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                        @if (CurrentUser.IsAuthenticated)
+                        {
+                            @if (CurrentUser.IsSuperAdmin || CurrentUser.IsAdmin)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" asp-controller="InternalDashboard" asp-action="Index">Dashboard</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" asp-controller="Customers" asp-action="Index">Customers</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" asp-controller="Properties" asp-action="Index">Properties</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" asp-controller="Procedures" asp-action="Index">Procedures</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" asp-controller="Documents" asp-action="Index">Documents</a>
+                                </li>
+                            }
+                            @if (CurrentUser.IsSuperAdmin)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" asp-controller="AdminManagement" asp-action="Index">Admin Console</a>
+                                </li>
+                            }
+                            @if (CurrentUser.IsCustomer)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white-50" asp-controller="CustomerPortal" asp-action="Index">My Customer Portal</a>
+                                </li>
+                            }
+                        }
+                    </ul>
+                    <ul class="navbar-nav align-items-center">
+                        @if (CurrentUser.IsAuthenticated)
+                        {
+                            <li class="nav-item me-3 text-light small">
+                                <span class="text-white-50">Signed in as:</span>
+                                <strong>@CurrentUser.Email</strong>
+                                @if (CurrentUser.IsSuperAdmin)
+                                {
+                                    <span class="badge bg-danger ms-1">SuperAdmin</span>
+                                }
+                                else if (CurrentUser.IsAdmin)
+                                {
+                                    <span class="badge bg-info text-dark ms-1">Admin</span>
+                                }
+                                else if (CurrentUser.IsCustomer)
+                                {
+                                    <span class="badge bg-success ms-1">Customer</span>
+                                }
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-light btn-sm">Sign Out</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="btn btn-primary btn-sm px-3" asp-controller="Account" asp-action="Login">Sign In</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container px-4">
+        <main role="main" class="pb-4">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted bg-white py-3 mt-auto">
+        <div class="container text-center small">
+            &copy; @DateTime.UtcNow.Year - Ardak Internal Real-Estate Management System &bull; Confidential &bull; Authorized Access Only
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

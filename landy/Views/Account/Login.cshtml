@@ -1,0 +1,57 @@
+@model landy.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Sign In - Ardak Internal Portal";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-primary">Ardak</h3>
+                    <p class="text-muted small">Internal Real-Estate Management & Customer Portal</p>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ContainsKey(string.Empty))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @Html.ValidationSummary(true, "", new { @class = "mb-0" })
+                    </div>
+                }
+
+                <form asp-action="Login" method="post" asp-route-returnUrl="@ViewData["ReturnUrl"]">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label fw-semibold"></label>
+                        <input asp-for="Email" class="form-control" placeholder="name@ardak.internal" autocomplete="email" autofocus />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label fw-semibold"></label>
+                        <input asp-for="Password" class="form-control" placeholder="••••••••" autocomplete="current-password" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="RememberMe" class="form-check-input" />
+                        <label asp-for="RememberMe" class="form-check-label"></label>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Sign In</button>
+                    </div>
+                </form>
+
+                <div class="mt-4 pt-3 border-top text-center text-muted small">
+                    <p class="mb-0">This is an authorized-access internal system. Public registration is strictly disabled.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

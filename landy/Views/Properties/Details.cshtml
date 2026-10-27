@@ -1,0 +1,339 @@
+@model PropertyDetailDto
+@using Ardak.Model.Enums
+@{
+    ViewData["Title"] = $"Property Profile - {Model.ReferenceNumber}";
+    var availableCustomers = ViewBag.AvailableCustomers as SelectList;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge @(Model.Type == PropertyType.Land ? "bg-secondary" : "bg-primary") fs-6">@Model.Type</span>
+            <h2 class="fw-bold mb-0">@Model.ReferenceNumber &mdash; @Model.Title</h2>
+            @switch (Model.Status)
+            {
+                case PropertyStatus.Active:
+                    <span class="badge bg-success fs-6">Active</span>
+                    break;
+                case PropertyStatus.UnderReview:
+                    <span class="badge bg-warning text-dark fs-6">Under Review</span>
+                    break;
+                case PropertyStatus.Reserved:
+                    <span class="badge bg-info text-dark fs-6">Reserved</span>
+                    break;
+                case PropertyStatus.Sold:
+                    <span class="badge bg-dark fs-6">Sold</span>
+                    break;
+                case PropertyStatus.Archived:
+                    <span class="badge bg-secondary fs-6">Archived</span>
+                    break;
+            }
+        </div>
+        <p class="text-muted mb-0 small">Registered on: @Model.CreatedAtUtc.ToString("yyyy-MM-dd HH:mm UTC") &bull; Last modified: @(Model.ModifiedAtUtc.HasValue ? Model.ModifiedAtUtc.Value.ToString("yyyy-MM-dd HH:mm UTC") : "Never")</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+            Edit Property
+        </a>
+        @if (Model.Status == PropertyStatus.Archived)
+        {
+            <form asp-action="Restore" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-success">
+                    Restore to Active
+                </button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="Archive" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Archive this property record?');">
+                    Archive
+                </button>
+            </form>
+        }
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            Back to List
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Left Column: Specs, Location, Measurements -->
+    <div class="col-lg-7">
+        <!-- Overview & Location -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">Location & Property Description</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Governorate / Region</div>
+                    <div class="col-sm-8 fw-semibold">@Model.Governorate</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">City</div>
+                    <div class="col-sm-8 fw-semibold">@Model.City</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">District / Area</div>
+                    <div class="col-sm-8">@Model.DistrictOrArea</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Detailed Address</div>
+                    <div class="col-sm-8">@(string.IsNullOrEmpty(Model.AddressDetails) ? "Not specified" : Model.AddressDetails)</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4 text-muted">Description</div>
+                    <div class="col-sm-8">@(string.IsNullOrEmpty(Model.Description) ? "No description provided." : Model.Description)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Area & Technical Measurements -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">Area Measurement & Geospatial Data</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Area Measurement</div>
+                    <div class="col-sm-8 fw-bold text-primary fs-5">
+                        @Model.AreaMeasurement.ToString("N2") @Model.AreaUnit
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">GPS Coordinates</div>
+                    <div class="col-sm-8">
+                        @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                        {
+                            <code>@Model.Latitude.Value.ToString("F6"), @Model.Longitude.Value.ToString("F6")</code>
+                            <a href="https://maps.google.com/?q=@Model.Latitude.Value,@Model.Longitude.Value" target="_blank" class="btn btn-sm btn-link ms-2">
+                                Open in Google Maps &nearr;
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not recorded</span>
+                        }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Ownership Form</div>
+                    <div class="col-sm-8">@(string.IsNullOrEmpty(Model.OwnershipType) ? "Standard Freehold" : Model.OwnershipType)</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4 text-muted">Title Deed / Sukuk #</div>
+                    <div class="col-sm-8">
+                        @if (!string.IsNullOrEmpty(Model.DeedOrTitleNumber))
+                        {
+                            <span class="badge bg-light text-dark border">@Model.DeedOrTitleNumber</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Not provided</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Associated Customers & Confidential Notes -->
+    <div class="col-lg-5">
+        <!-- Primary Customer -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0">Primary Customer Record</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0">@Model.PrimaryCustomerName</h6>
+                    <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.PrimaryCustomerId" class="btn btn-sm btn-outline-primary">
+                        View Dossier
+                    </a>
+                </div>
+                <p class="text-muted small mb-0">Primary Phone: <strong>@Model.PrimaryCustomerPhone</strong></p>
+            </div>
+        </div>
+
+        <!-- Co-Owners & Customer Associations -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Associated Customers / Co-Owners</h5>
+                <span class="badge bg-primary">@Model.AssociatedCustomers.Count Total</span>
+            </div>
+            <div class="card-body p-4">
+                @if (Model.AssociatedCustomers.Any())
+                {
+                    <ul class="list-group list-group-flush mb-4">
+                        @foreach (var assoc in Model.AssociatedCustomers)
+                        {
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold">
+                                        <a asp-controller="Customers" asp-action="Details" asp-route-id="@assoc.CustomerId" class="text-decoration-none">
+                                            @assoc.CustomerName
+                                        </a>
+                                        <span class="badge bg-info text-dark ms-1">@assoc.OwnershipRole</span>
+                                    </div>
+                                    <div class="text-muted small">
+                                        Share: @(assoc.OwnershipPercentage.HasValue ? $"{assoc.OwnershipPercentage.Value:N1}%" : "Unspecified") &bull; @assoc.CustomerPhone
+                                    </div>
+                                </div>
+                                @if (assoc.CustomerId != Model.PrimaryCustomerId)
+                                {
+                                    <form asp-action="RemoveCustomerAssociation" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="propertyId" value="@Model.Id" />
+                                        <input type="hidden" name="customerId" value="@assoc.CustomerId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Remove association with @assoc.CustomerName?');">
+                                            Remove
+                                        </button>
+                                    </form>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+
+                <!-- Add Association Form -->
+                @if (availableCustomers != null && availableCustomers.Any())
+                {
+                    <div class="p-3 bg-light rounded border">
+                        <h6 class="fw-bold mb-2 small text-uppercase">Link Additional Customer (Co-Owner / Stakeholder)</h6>
+                        <form asp-action="AssociateCustomer" method="post" class="row g-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="propertyId" value="@Model.Id" />
+                            <div class="col-12">
+                                <select name="customerId" class="form-select form-select-sm" asp-items="availableCustomers" required>
+                                    <option value="">-- Select Customer --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-7">
+                                <input type="text" name="role" class="form-control form-control-sm" placeholder="Role (e.g. Co-Owner, Investor)" value="Co-Owner" />
+                            </div>
+                            <div class="col-md-5">
+                                <input type="number" step="0.01" name="ownershipPercentage" class="form-control form-control-sm" placeholder="Share %" />
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">+ Add Customer Association</button>
+                            </div>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Confidential Internal Staff Notes -->
+        <div class="card shadow-sm border-0 border-top border-warning border-3">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <h5 class="fw-bold mb-0">Internal Staff Notes</h5>
+                    <span class="badge bg-warning text-dark">Confidential &bull; Staff Only</span>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                @if (!string.IsNullOrWhiteSpace(Model.InternalNotes))
+                {
+                    <div class="p-3 bg-light rounded border">
+                        <p class="mb-0 text-dark" style="white-space: pre-wrap;">@Model.InternalNotes</p>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted fst-italic mb-0 small">No internal notes entered for this property record.</p>
+                }
+                <div class="mt-3 text-muted small">
+                    <em>Confidentiality Notice: This information is strictly private and never exposed to customers or public interfaces.</em>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    var procedures = ViewBag.Procedures as IReadOnlyList<Ardak.Application.DTOs.ProcedureSummaryDto>
+                     ?? new List<Ardak.Application.DTOs.ProcedureSummaryDto>();
+}
+
+<div class="card shadow-sm mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0"><i class="bi bi-clipboard2-check me-1"></i> Legal &amp; Administrative Procedures</h5>
+        <a asp-controller="Procedures" asp-action="Create" asp-route-propertyId="@Model.Id"
+           class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> New Procedure
+        </a>
+    </div>
+    <div class="card-body p-0">
+        @if (!procedures.Any())
+        {
+            <p class="text-muted p-3 mb-0">No procedures recorded for this property yet.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Type</th>
+                            <th>Application #</th>
+                            <th>Authority</th>
+                            <th>Status</th>
+                            <th>Next Deadline</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in procedures)
+                        {
+                            <tr>
+                                <td><span class="badge bg-secondary">@p.TypeLabel</span></td>
+                                <td>@(p.ApplicationNumber ?? "—")</td>
+                                <td>@(p.ResponsibleAuthority ?? "—")</td>
+                                <td><partial name="_ProcedureStatusBadge" model="p.Status" /></td>
+                                <td>
+                                    @if (p.NextActionDeadline.HasValue)
+                                    {
+                                        var css = p.HasOverdueDeadline ? "text-danger fw-bold" : "text-body";
+                                        <span class="@css">
+                                            @p.NextActionDeadline.Value.ToString("dd MMM yyyy")
+                                            @if (p.HasOverdueDeadline)
+                                            {
+                                                <i class="bi bi-exclamation-triangle-fill ms-1"></i>
+                                            }
+                                        </span>
+                                    }
+                                    else { <span class="text-muted">—</span> }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-controller="Procedures" asp-action="Details" asp-route-id="@p.Id"
+                                       class="btn btn-sm btn-outline-secondary me-1">View</a>
+                                    <a asp-controller="Procedures" asp-action="Edit" asp-route-id="@p.Id"
+                                       class="btn btn-sm btn-outline-primary">Edit</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

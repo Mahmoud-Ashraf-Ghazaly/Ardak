@@ -1,0 +1,209 @@
+@model Ardak.Application.DTOs.ProcedureDetailDto
+@using Ardak.Model.Enums
+@{
+    ViewData["Title"] = $"Procedure – {Model.TypeLabel}";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Procedures</a></li>
+        <li class="breadcrumb-item">
+            <a asp-controller="Properties" asp-action="Details" asp-route-id="@Model.PropertyId">
+                @Model.PropertyReferenceNumber
+            </a>
+        </li>
+        <li class="breadcrumb-item active">@Model.TypeLabel</li>
+    </ol>
+</nav>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="h3 mb-1">
+            <i class="bi bi-clipboard2-check me-2"></i>@Model.TypeLabel
+            <partial name="_ProcedureStatusBadge" model="Model.Status" />
+        </h1>
+        <p class="text-muted mb-0">
+            Property:
+            <a asp-controller="Properties" asp-action="Details" asp-route-id="@Model.PropertyId">
+                @Model.PropertyReferenceNumber – @Model.PropertyTitle
+            </a>
+        </p>
+    </div>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+        <i class="bi bi-pencil me-1"></i> Edit
+    </a>
+</div>
+
+<div class="row g-4">
+
+    {{!-- Core Information --}}
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold"><i class="bi bi-info-circle me-1"></i> Core Information</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Type</dt>
+                    <dd class="col-sm-7">@Model.TypeLabel</dd>
+
+                    <dt class="col-sm-5">Application #</dt>
+                    <dd class="col-sm-7">@(Model.ApplicationNumber ?? "—")</dd>
+
+                    <dt class="col-sm-5">Authority</dt>
+                    <dd class="col-sm-7">@(Model.ResponsibleAuthority ?? "—")</dd>
+
+                    <dt class="col-sm-5">Submission Date</dt>
+                    <dd class="col-sm-7">
+                        @(Model.SubmissionDate.HasValue ? Model.SubmissionDate.Value.ToString("dd MMM yyyy") : "—")
+                    </dd>
+
+                    <dt class="col-sm-5">Next Action</dt>
+                    <dd class="col-sm-7">
+                        @if (Model.NextActionDeadline.HasValue)
+                        {
+                            var css = Model.HasOverdueDeadline ? "text-danger fw-bold" : string.Empty;
+                            <span class="@css">
+                                @Model.NextActionDeadline.Value.ToString("dd MMM yyyy")
+                                @if (Model.HasOverdueDeadline)
+                                {
+                                    <span class="badge bg-danger ms-1">Overdue</span>
+                                }
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </dd>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.NextActionDescription))
+                    {
+                        <dt class="col-sm-5">Next Step</dt>
+                        <dd class="col-sm-7">@Model.NextActionDescription</dd>
+                    }
+
+                    <dt class="col-sm-5">Created</dt>
+                    <dd class="col-sm-7">@Model.CreatedAtUtc.ToString("dd MMM yyyy HH:mm") UTC</dd>
+
+                    @if (Model.ModifiedAtUtc.HasValue)
+                    {
+                        <dt class="col-sm-5">Last Updated</dt>
+                        <dd class="col-sm-7">@Model.ModifiedAtUtc.Value.ToString("dd MMM yyyy HH:mm") UTC</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    {{!-- Financial Tracking --}}
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold"><i class="bi bi-cash-coin me-1"></i> Financial Tracking (Internal)</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Total Fee</dt>
+                    <dd class="col-sm-7">
+                        @(Model.TotalFee.HasValue ? $"SAR {Model.TotalFee:N2}" : "—")
+                    </dd>
+
+                    <dt class="col-sm-5">Amount Paid</dt>
+                    <dd class="col-sm-7">
+                        @(Model.AmountPaid.HasValue ? $"SAR {Model.AmountPaid:N2}" : "—")
+                    </dd>
+
+                    <dt class="col-sm-5">Balance Due</dt>
+                    <dd class="col-sm-7">
+                        @if (Model.BalanceDue.HasValue)
+                        {
+                            var balCss = Model.BalanceDue.Value > 0 ? "text-danger fw-bold" : "text-success";
+                            <span class="@balCss">SAR @Model.BalanceDue.Value.ToString("N2")</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    {{!-- Missing Documents --}}
+    @if (!string.IsNullOrWhiteSpace(Model.MissingDocuments))
+    {
+        <div class="col-12">
+            <div class="card shadow-sm border-warning">
+                <div class="card-header fw-semibold text-warning-emphasis bg-warning-subtle">
+                    <i class="bi bi-exclamation-triangle me-1"></i> Missing / Outstanding Documents
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" style="white-space: pre-wrap;">@Model.MissingDocuments</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    {{!-- Internal Notes --}}
+    @if (!string.IsNullOrWhiteSpace(Model.InternalNotes))
+    {
+        <div class="col-12">
+            <div class="card shadow-sm border-info">
+                <div class="card-header fw-semibold text-info-emphasis bg-info-subtle">
+                    <i class="bi bi-lock me-1"></i> Internal Staff Notes (Confidential)
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" style="white-space: pre-wrap;">@Model.InternalNotes</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    {{!-- Status History --}}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold"><i class="bi bi-clock-history me-1"></i> Status History</div>
+            <div class="card-body p-0">
+                @if (!Model.StatusHistory.Any())
+                {
+                    <p class="text-muted p-3 mb-0">No status changes recorded yet.</p>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date (UTC)</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Note</th>
+                                    <th>Changed By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var h in Model.StatusHistory)
+                                {
+                                    <tr>
+                                        <td class="text-nowrap">@h.ChangedAtUtc.ToString("dd MMM yyyy HH:mm")</td>
+                                        <td><partial name="_ProcedureStatusBadge" model="h.FromStatus" /></td>
+                                        <td><partial name="_ProcedureStatusBadge" model="h.ToStatus" /></td>
+                                        <td>@(h.ChangeNote ?? "—")</td>
+                                        <td class="text-muted small">@(h.ChangedByUserId ?? "system")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>

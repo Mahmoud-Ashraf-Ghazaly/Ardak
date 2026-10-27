@@ -1,0 +1,217 @@
+@model Ardak.Application.DTOs.CustomerPropertyDetailDto
+@using Ardak.Model.Enums
+@{
+    ViewData["Title"] = $"Property – {Model.ReferenceNumber}";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Client Portal</a></li>
+        <li class="breadcrumb-item"><a asp-action="Properties">My Properties</a></li>
+        <li class="breadcrumb-item active">@Model.ReferenceNumber</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h1 class="h3 fw-bold mb-0">@Model.Title</h1>
+            <span class="badge bg-secondary">@Model.Status</span>
+        </div>
+        <p class="text-muted mb-0 small">
+            Property Reference: <code>@Model.ReferenceNumber</code> &bull; Type: <strong>@Model.Type</strong>
+        </p>
+    </div>
+    <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-2">
+        @Model.OwnershipRole
+        @if (Model.OwnershipPercentage.HasValue)
+        {
+            <span>(@Model.OwnershipPercentage.Value.ToString("0.##")%)</span>
+        }
+    </span>
+</div>
+
+<div class="row g-4">
+    {{!-- Basic Property Info --}}
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 fw-bold">
+                <i class="bi bi-geo-alt me-1 text-primary"></i> Location & Measurements
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">City / Governorate</dt>
+                    <dd class="col-sm-8 fw-semibold">@Model.City, @Model.Governorate</dd>
+
+                    <dt class="col-sm-4 text-muted">District / Area</dt>
+                    <dd class="col-sm-8">@Model.DistrictOrArea</dd>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.AddressDetails))
+                    {
+                        <dt class="col-sm-4 text-muted">Address Details</dt>
+                        <dd class="col-sm-8">@Model.AddressDetails</dd>
+                    }
+
+                    <dt class="col-sm-4 text-muted">Total Area</dt>
+                    <dd class="col-sm-8 fw-bold">@Model.AreaMeasurement.ToString("N2") @Model.AreaUnit</dd>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Description))
+                    {
+                        <dt class="col-sm-4 text-muted">Description</dt>
+                        <dd class="col-sm-8">@Model.Description</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    {{!-- Deed & Ownership Info --}}
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 fw-bold">
+                <i class="bi bi-file-earmark-check me-1 text-success"></i> Deed & Registration Details
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">Ownership Type</dt>
+                    <dd class="col-sm-8">@(Model.OwnershipType ?? "Freehold")</dd>
+
+                    <dt class="col-sm-4 text-muted">Deed / Title #</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrWhiteSpace(Model.DeedOrTitleNumber))
+                        {
+                            <code>@Model.DeedOrTitleNumber</code>
+                        }
+                        else
+                        {
+                            <span class="text-muted">On file with authority</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4 text-muted">Client Relationship</dt>
+                    <dd class="col-sm-8 fw-semibold">@Model.OwnershipRole</dd>
+
+                    <dt class="col-sm-4 text-muted">Operational Status</dt>
+                    <dd class="col-sm-8"><span class="badge bg-secondary">@Model.Status</span></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    {{!-- Approved Procedures Tracking --}}
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-clipboard2-check me-1 text-info"></i> Legal & Administrative Procedures</span>
+                <span class="badge bg-light text-muted border">@Model.ApprovedProcedures.Count tracked</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.ApprovedProcedures.Any())
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-clipboard-x fs-2 d-block mb-1"></i>
+                        No public procedures are tracked for this property.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Procedure Type</th>
+                                    <th>Application / Ref #</th>
+                                    <th>Responsible Authority</th>
+                                    <th>Status</th>
+                                    <th>Client Update</th>
+                                    <th class="text-end">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var pr in Model.ApprovedProcedures)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-secondary">@pr.TypeLabel</span>
+                                        </td>
+                                        <td>@(pr.ApplicationNumber ?? "—")</td>
+                                        <td>@(pr.ResponsibleAuthority ?? "—")</td>
+                                        <td><partial name="_ProcedureStatusBadge" model="pr.Status" /></td>
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(pr.CustomerUpdateNotes))
+                                            {
+                                                <span class="text-dark small">@pr.CustomerUpdateNotes</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">Status tracked normally</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <a asp-action="ProcedureDetails" asp-route-id="@pr.Id" class="btn btn-sm btn-outline-info">
+                                                View &rarr;
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    {{!-- Approved Documents --}}
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold"><i class="bi bi-file-earmark-arrow-down me-1 text-success"></i> Approved Property Documents</span>
+                <span class="badge bg-light text-muted border">@Model.ApprovedDocuments.Count document(s)</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.ApprovedDocuments.Any())
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-folder-check fs-2 d-block mb-1"></i>
+                        No client-approved documents are currently available for this property.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Original File</th>
+                                    <th>Size</th>
+                                    <th>Upload Date</th>
+                                    <th class="text-end">Download</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var doc in Model.ApprovedDocuments)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@doc.Title</td>
+                                        <td><span class="badge bg-light text-dark border">@doc.DocumentType</span></td>
+                                        <td><code>@doc.OriginalFileName</code></td>
+                                        <td>@doc.FormattedFileSize</td>
+                                        <td>@doc.UploadDateUtc.ToString("dd MMM yyyy")</td>
+                                        <td class="text-end">
+                                            <a asp-action="DownloadDocument" asp-route-id="@doc.Id" class="btn btn-sm btn-success">
+                                                <i class="bi bi-download me-1"></i> Download
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

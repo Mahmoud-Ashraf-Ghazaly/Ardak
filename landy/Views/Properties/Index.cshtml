@@ -1,0 +1,191 @@
+@model IReadOnlyList<PropertySummaryDto>
+@using Ardak.Model.Enums
+@{
+    ViewData["Title"] = "Property Records Management";
+    var filter = ViewBag.Filter as PropertySearchFilterDto ?? new PropertySearchFilterDto();
+    var customerList = ViewBag.Customers as SelectList;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Property Records Registry</h2>
+        <p class="text-muted mb-0">Internal real-estate inventory &bull; Land and Villa profiles &bull; Confidential records</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary">
+        + Register New Property
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Search & Filter Controls -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+        <form asp-action="Index" method="get" class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <input type="text" name="ReferenceNumber" class="form-control" placeholder="Reference # (e.g. PRP-001)" value="@filter.ReferenceNumber" />
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="Location" class="form-control" placeholder="Location (City, District, Gov)" value="@filter.Location" />
+            </div>
+            <div class="col-md-2">
+                <select name="Type" class="form-select">
+                    <option value="">All Types</option>
+                    @foreach (var val in Enum.GetValues<PropertyType>())
+                    {
+                        if (filter.Type == val)
+                        {
+                            <option value="@val" selected>@val</option>
+                        }
+                        else
+                        {
+                            <option value="@val">@val</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="Status" class="form-select">
+                    <option value="">All Statuses</option>
+                    @foreach (var val in Enum.GetValues<PropertyStatus>())
+                    {
+                        if (filter.Status == val)
+                        {
+                            <option value="@val" selected>@val</option>
+                        }
+                        else
+                        {
+                            <option value="@val">@val</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-outline-primary flex-grow-1">Filter</button>
+                @if (!string.IsNullOrEmpty(filter.ReferenceNumber) || !string.IsNullOrEmpty(filter.Location) || filter.Type.HasValue || filter.Status.HasValue || filter.CustomerId.HasValue)
+                {
+                    <a asp-action="Index" class="btn btn-outline-secondary">Reset</a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Property Records Table -->
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Reference #</th>
+                    <th>Type</th>
+                    <th>Title / Name</th>
+                    <th>Location</th>
+                    <th>Area</th>
+                    <th>Primary Customer</th>
+                    <th>Status</th>
+                    <th>Registered</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <p class="mb-1">No property records found matching the search criteria.</p>
+                            @if (!string.IsNullOrEmpty(filter.ReferenceNumber) || !string.IsNullOrEmpty(filter.Location) || filter.Type.HasValue || filter.Status.HasValue)
+                            {
+                                <a asp-action="Index" class="btn btn-sm btn-link">Clear search filters</a>
+                            }
+                        </td>
+                    </tr>
+                }
+                @foreach (var prop in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">
+                            <a asp-action="Details" asp-route-id="@prop.Id" class="text-decoration-none">
+                                @prop.ReferenceNumber
+                            </a>
+                        </td>
+                        <td>
+                            @if (prop.Type == PropertyType.Land)
+                            {
+                                <span class="badge bg-secondary">Land</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-primary">Villa</span>
+                            }
+                        </td>
+                        <td class="fw-semibold">@prop.Title</td>
+                        <td>@prop.City, @prop.DistrictOrArea</td>
+                        <td>@prop.AreaMeasurement.ToString("N2") @prop.AreaUnit</td>
+                        <td>
+                            <a asp-controller="Customers" asp-action="Details" asp-route-id="@prop.PrimaryCustomerId" class="text-decoration-none">
+                                @prop.PrimaryCustomerName
+                            </a>
+                            @if (prop.CoOwnersCount > 0)
+                            {
+                                <span class="badge bg-light text-dark border ms-1">+@prop.CoOwnersCount co-owner@(prop.CoOwnersCount > 1 ? "s" : "")</span>
+                            }
+                        </td>
+                        <td>
+                            @switch (prop.Status)
+                            {
+                                case PropertyStatus.Active:
+                                    <span class="badge bg-success">Active</span>
+                                    break;
+                                case PropertyStatus.UnderReview:
+                                    <span class="badge bg-warning text-dark">Under Review</span>
+                                    break;
+                                case PropertyStatus.Reserved:
+                                    <span class="badge bg-info text-dark">Reserved</span>
+                                    break;
+                                case PropertyStatus.Sold:
+                                    <span class="badge bg-dark">Sold</span>
+                                    break;
+                                case PropertyStatus.Archived:
+                                    <span class="badge bg-secondary">Archived</span>
+                                    break;
+                            }
+                        </td>
+                        <td>@prop.CreatedAtUtc.ToString("yyyy-MM-dd")</td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@prop.Id" class="btn btn-sm btn-outline-primary me-1">
+                                Dossier
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@prop.Id" class="btn btn-sm btn-outline-secondary me-1">
+                                Edit
+                            </a>
+                            @if (prop.Status != PropertyStatus.Archived)
+                            {
+                                <form asp-action="Archive" asp-route-id="@prop.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Archive record for @prop.ReferenceNumber?');">
+                                        Archive
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

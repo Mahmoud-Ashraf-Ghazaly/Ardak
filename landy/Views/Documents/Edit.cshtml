@@ -1,0 +1,121 @@
+@model Ardak.Application.DTOs.UpdateDocumentMetadataDto
+@using Ardak.Model.Enums
+@{
+    ViewData["Title"] = $"Edit Document – {Model.Title}";
+    var doc = ViewBag.Document as Ardak.Application.DTOs.DocumentDetailDto;
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Documents</a></li>
+        <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@Model.Id">@Model.Title</a></li>
+        <li class="breadcrumb-item active">Edit</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white fw-semibold">
+                <i class="bi bi-pencil me-2"></i>Edit Document Metadata
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                    <input type="hidden" asp-for="Id" />
+
+                    @if (doc != null)
+                    {
+                        <div class="p-3 bg-light border rounded mb-4">
+                            <div class="row g-2">
+                                <div class="col-sm-6">
+                                    <span class="text-muted small">File:</span> <strong>@doc.OriginalFileName</strong>
+                                </div>
+                                <div class="col-sm-6">
+                                    <span class="text-muted small">Size:</span> @doc.FormattedFileSize
+                                </div>
+                                @if (doc.PropertyId.HasValue)
+                                {
+                                    <div class="col-sm-6">
+                                        <span class="text-muted small">Property:</span> @doc.PropertyReferenceNumber
+                                    </div>
+                                }
+                                @if (doc.CustomerId.HasValue)
+                                {
+                                    <div class="col-sm-6">
+                                        <span class="text-muted small">Customer:</span> @doc.CustomerName
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label asp-for="Title" class="form-label fw-semibold"></label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ReferenceNumber" class="form-label fw-semibold"></label>
+                            <input asp-for="ReferenceNumber" class="form-control" />
+                            <span asp-validation-for="ReferenceNumber" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Type" class="form-label fw-semibold"></label>
+                            <select asp-for="Type" asp-items="@Html.GetEnumSelectList<DocumentType>()" class="form-select"></select>
+                            <span asp-validation-for="Type" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="TypeLabel" class="form-label fw-semibold"></label>
+                            <input asp-for="TypeLabel" class="form-control" placeholder="Custom label if 'Other'" />
+                            <span asp-validation-for="TypeLabel" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ConfidentialityLevel" class="form-label fw-semibold"></label>
+                            <select asp-for="ConfidentialityLevel" asp-items="@Html.GetEnumSelectList<DocumentConfidentialityLevel>()" class="form-select"></select>
+                            <span asp-validation-for="ConfidentialityLevel" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-center mt-4">
+                            <div class="form-check p-3 border rounded bg-warning-subtle border-warning w-100">
+                                <input asp-for="IsCustomerVisible" class="form-check-input ms-1" type="checkbox" id="chkCustomerVisible" />
+                                <label class="form-check-label fw-semibold ms-2" for="chkCustomerVisible">
+                                    Allow Customer Portal Access
+                                </label>
+                                <div class="small text-muted ms-2 mt-1">
+                                    Only check this if customer is explicitly authorized to view this document.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="InternalNotes" class="form-label fw-semibold"></label>
+                            <textarea asp-for="InternalNotes" class="form-control" rows="3" placeholder="Confidential staff notes. Never visible to customers."></textarea>
+                            <span asp-validation-for="InternalNotes" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

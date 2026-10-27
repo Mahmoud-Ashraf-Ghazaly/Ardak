@@ -1,0 +1,128 @@
+@model Ardak.Application.DTOs.CustomerProcedureDto
+@using Ardak.Model.Enums
+@{
+    ViewData["Title"] = $"Procedure – {Model.TypeLabel}";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Client Portal</a></li>
+        <li class="breadcrumb-item"><a asp-action="PropertyDetails" asp-route-id="@Model.PropertyId">@Model.PropertyReferenceNumber</a></li>
+        <li class="breadcrumb-item active">@Model.TypeLabel</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h1 class="h3 fw-bold mb-0">@Model.TypeLabel</h1>
+            <partial name="_ProcedureStatusBadge" model="Model.Status" />
+        </div>
+        <p class="text-muted mb-0 small">
+            Property:
+            <a asp-action="PropertyDetails" asp-route-id="@Model.PropertyId" class="text-decoration-none">
+                @Model.PropertyReferenceNumber &ndash; @Model.PropertyTitle
+            </a>
+        </p>
+    </div>
+    <a asp-action="PropertyDetails" asp-route-id="@Model.PropertyId" class="btn btn-outline-secondary btn-sm">
+        &larr; Back to Property
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 fw-bold">
+                <i class="bi bi-info-circle me-1 text-primary"></i> Official Procedure Status
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Procedure Type</dt>
+                    <dd class="col-sm-7 fw-semibold">@Model.TypeLabel</dd>
+
+                    <dt class="col-sm-5 text-muted">Application / Ref #</dt>
+                    <dd class="col-sm-7">@(Model.ApplicationNumber ?? "—")</dd>
+
+                    <dt class="col-sm-5 text-muted">Responsible Authority</dt>
+                    <dd class="col-sm-7">@(Model.ResponsibleAuthority ?? "Official Authority")</dd>
+
+                    <dt class="col-sm-5 text-muted">Current Status</dt>
+                    <dd class="col-sm-7"><partial name="_ProcedureStatusBadge" model="Model.Status" /></dd>
+
+                    <dt class="col-sm-5 text-muted">Submission Date</dt>
+                    <dd class="col-sm-7">@(Model.SubmissionDate.HasValue ? Model.SubmissionDate.Value.ToString("dd MMMM yyyy") : "—")</dd>
+
+                    <dt class="col-sm-5 text-muted">Tracking Since</dt>
+                    <dd class="col-sm-7">@Model.CreatedAtUtc.ToString("dd MMMM yyyy")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    {{!-- Client Update Notes --}}
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 fw-bold">
+                <i class="bi bi-chat-left-text me-1 text-info"></i> Latest Client Update
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrWhiteSpace(Model.CustomerUpdateNotes))
+                {
+                    <div class="p-3 bg-light rounded border-start border-4 border-info">
+                        <p class="mb-0 fw-semibold text-dark">@Model.CustomerUpdateNotes</p>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted mb-0">
+                        The procedure is currently undergoing official processing. You will receive updates as progress is approved by our legal team.
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+
+    {{!-- Approved Documents linked to Procedure --}}
+    @if (Model.ApprovedDocuments.Any())
+    {
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3 fw-bold">
+                    <i class="bi bi-file-earmark-arrow-down me-1 text-success"></i> Approved Procedure Documents
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Document Title</th>
+                                    <th>Type</th>
+                                    <th>Size</th>
+                                    <th>Date</th>
+                                    <th class="text-end">Download</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var doc in Model.ApprovedDocuments)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@doc.Title</td>
+                                        <td><span class="badge bg-light text-dark border">@doc.DocumentType</span></td>
+                                        <td class="small text-muted">@doc.FormattedFileSize</td>
+                                        <td class="small text-muted">@doc.UploadDateUtc.ToString("dd MMM yyyy")</td>
+                                        <td class="text-end">
+                                            <a asp-action="DownloadDocument" asp-route-id="@doc.Id" class="btn btn-sm btn-success">
+                                                <i class="bi bi-download me-1"></i> Download
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

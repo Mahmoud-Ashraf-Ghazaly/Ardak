@@ -1,0 +1,16 @@
+@model Ardak.Model.Enums.ProcedureStatus
+@{
+    var (cssClass, label) = Model switch
+    {
+        Ardak.Model.Enums.ProcedureStatus.Submitted          => ("bg-secondary", "Submitted"),
+        Ardak.Model.Enums.ProcedureStatus.InProgress         => ("bg-primary", "In Progress"),
+        Ardak.Model.Enums.ProcedureStatus.PendingRequirements => ("bg-warning text-dark", "Pending Requirements"),
+        Ardak.Model.Enums.ProcedureStatus.UnderReview        => ("bg-info text-dark", "Under Review"),
+        Ardak.Model.Enums.ProcedureStatus.Approved           => ("bg-success", "Approved"),
+        Ardak.Model.Enums.ProcedureStatus.Rejected           => ("bg-danger", "Rejected"),
+        Ardak.Model.Enums.ProcedureStatus.Completed          => ("bg-success", "Completed"),
+        Ardak.Model.Enums.ProcedureStatus.Cancelled          => ("bg-secondary", "Cancelled"),
+        _ => ("bg-secondary", Model.ToString())
+    };
+}
+<span class="badge @cssClass">@label</span>

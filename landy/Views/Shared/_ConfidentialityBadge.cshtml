@@ -1,0 +1,12 @@
+@model Ardak.Model.Enums.DocumentConfidentialityLevel
+@{
+    var (badgeClass, label) = Model switch
+    {
+        Ardak.Model.Enums.DocumentConfidentialityLevel.Standard => ("bg-secondary", "Standard"),
+        Ardak.Model.Enums.DocumentConfidentialityLevel.Internal => ("bg-primary", "Internal"),
+        Ardak.Model.Enums.DocumentConfidentialityLevel.Confidential => ("bg-warning text-dark", "Confidential"),
+        Ardak.Model.Enums.DocumentConfidentialityLevel.StrictlyConfidential => ("bg-danger", "Strictly Confidential"),
+        _ => ("bg-secondary", Model.ToString())
+    };
+}
+<span class="badge @badgeClass">@label</span>

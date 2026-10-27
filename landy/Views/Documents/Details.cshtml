@@ -1,0 +1,258 @@
+@model Ardak.Application.DTOs.DocumentDetailDto
+@using Ardak.Model.Enums
+@{
+    ViewData["Title"] = $"Document – {Model.Title}";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Documents</a></li>
+        @if (Model.PropertyId.HasValue)
+        {
+            <li class="breadcrumb-item">
+                <a asp-controller="Properties" asp-action="Details" asp-route-id="@Model.PropertyId">
+                    @Model.PropertyReferenceNumber
+                </a>
+            </li>
+        }
+        @if (Model.CustomerId.HasValue)
+        {
+            <li class="breadcrumb-item">
+                <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId">
+                    @Model.CustomerName
+                </a>
+            </li>
+        }
+        <li class="breadcrumb-item active">@Model.Title</li>
+    </ol>
+</nav>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="h3 mb-1">
+            <i class="bi bi-file-earmark-lock2 me-2"></i>@Model.Title
+            <partial name="_ConfidentialityBadge" model="Model.ConfidentialityLevel" />
+            @if (Model.IsArchived)
+            {
+                <span class="badge bg-dark ms-1">Archived</span>
+            }
+        </h1>
+        <p class="text-muted mb-0">
+            Document Type: <span class="badge bg-secondary">@Model.TypeLabel</span>
+            @if (!string.IsNullOrWhiteSpace(Model.ReferenceNumber))
+            {
+                <span class="ms-2">Ref #: <code>@Model.ReferenceNumber</code></span>
+            }
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Download" asp-route-id="@Model.Id" class="btn btn-success">
+            <i class="bi bi-download me-1"></i> Download File
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i> Edit Metadata
+        </a>
+        @if (!Model.IsArchived)
+        {
+            <form asp-action="Archive" asp-route-id="@Model.Id" method="post" class="d-inline"
+                  onsubmit="return confirm('Archive this document? It will be marked as archived and preserved for historical compliance.');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger">
+                    <i class="bi bi-archive me-1"></i> Archive
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    {{!-- Document Info --}}
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold"><i class="bi bi-info-circle me-1"></i> Metadata & Classification</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Type</dt>
+                    <dd class="col-sm-7">@Model.TypeLabel</dd>
+
+                    <dt class="col-sm-5">Reference #</dt>
+                    <dd class="col-sm-7">@(Model.ReferenceNumber ?? "—")</dd>
+
+                    <dt class="col-sm-5">Confidentiality</dt>
+                    <dd class="col-sm-7">
+                        <partial name="_ConfidentialityBadge" model="Model.ConfidentialityLevel" />
+                    </dd>
+
+                    <dt class="col-sm-5">Customer Visibility</dt>
+                    <dd class="col-sm-7">
+                        @if (Model.IsCustomerVisible)
+                        {
+                            <span class="badge bg-success-subtle text-success border border-success">
+                                <i class="bi bi-eye me-1"></i>Visible to Authorized Customer
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-light text-muted border">
+                                <i class="bi bi-eye-slash me-1"></i>Private (Staff Only)
+                            </span>
+                        }
+                    </dd>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Description))
+                    {
+                        <dt class="col-sm-5">Description</dt>
+                        <dd class="col-sm-7">@Model.Description</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    {{!-- File Details & Integrity --}}
+    <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header fw-semibold"><i class="bi bi-shield-check me-1"></i> File Technical Specifications</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Original Filename</dt>
+                    <dd class="col-sm-7"><code>@Model.OriginalFileName</code></dd>
+
+                    <dt class="col-sm-5">File Size</dt>
+                    <dd class="col-sm-7">@Model.FormattedFileSize (@Model.FileSizeBytes.ToString("N0") bytes)</dd>
+
+                    <dt class="col-sm-5">MIME Type</dt>
+                    <dd class="col-sm-7"><code>@Model.ContentType</code></dd>
+
+                    <dt class="col-sm-5">Extension</dt>
+                    <dd class="col-sm-7"><code>@Model.FileExtension</code></dd>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.ChecksumSha256))
+                    {
+                        <dt class="col-sm-5">SHA-256 Hash</dt>
+                        <dd class="col-sm-7"><code class="small text-break">@Model.ChecksumSha256</code></dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    {{!-- Entity Associations --}}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold"><i class="bi bi-link-45deg me-1"></i> Associated Entities</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="small text-muted fw-semibold">Customer</div>
+                            @if (Model.CustomerId.HasValue)
+                            {
+                                <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId" class="fw-bold">
+                                    @Model.CustomerName (#@Model.CustomerId)
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not associated with a specific customer.</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="small text-muted fw-semibold">Property</div>
+                            @if (Model.PropertyId.HasValue)
+                            {
+                                <a asp-controller="Properties" asp-action="Details" asp-route-id="@Model.PropertyId" class="fw-bold">
+                                    @Model.PropertyReferenceNumber
+                                </a>
+                                <div class="small text-muted">@Model.PropertyTitle</div>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not associated with a property.</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="p-3 border rounded bg-light">
+                            <div class="small text-muted fw-semibold">Legal / Administrative Procedure</div>
+                            @if (Model.ProcedureId.HasValue)
+                            {
+                                <a asp-controller="Procedures" asp-action="Details" asp-route-id="@Model.ProcedureId" class="fw-bold">
+                                    #@Model.ProcedureId – @Model.ProcedureTypeLabel
+                                </a>
+                                @if (!string.IsNullOrWhiteSpace(Model.ProcedureApplicationNumber))
+                                {
+                                    <div class="small text-muted">App #: @Model.ProcedureApplicationNumber</div>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">Not associated with a procedure.</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{!-- Confidential Internal Notes --}}
+    @if (!string.IsNullOrWhiteSpace(Model.InternalNotes))
+    {
+        <div class="col-12">
+            <div class="card shadow-sm border-info">
+                <div class="card-header fw-semibold text-info-emphasis bg-info-subtle">
+                    <i class="bi bi-lock me-1"></i> Internal Staff Notes (Confidential)
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" style="white-space: pre-wrap;">@Model.InternalNotes</p>
+                </div>
+            </div>
+        </div>
+    }
+
+    {{!-- Audit & Archival Details --}}
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold"><i class="bi bi-clock-history me-1"></i> Audit Information</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-3">Uploaded</dt>
+                    <dd class="col-sm-9">@Model.UploadedAtUtc.ToString("dd MMM yyyy HH:mm") UTC by <code>@(Model.UploadedByUserId ?? "system")</code></dd>
+
+                    @if (Model.ModifiedAtUtc.HasValue)
+                    {
+                        <dt class="col-sm-3">Last Modified</dt>
+                        <dd class="col-sm-9">@Model.ModifiedAtUtc.Value.ToString("dd MMM yyyy HH:mm") UTC by <code>@(Model.ModifiedByUserId ?? "system")</code></dd>
+                    }
+
+                    @if (Model.IsArchived)
+                    {
+                        <dt class="col-sm-3 text-danger">Archived</dt>
+                        <dd class="col-sm-9 text-danger">
+                            @(Model.ArchivedAtUtc.HasValue ? Model.ArchivedAtUtc.Value.ToString("dd MMM yyyy HH:mm") : "Yes") UTC by <code>@(Model.ArchivedByUserId ?? "staff")</code>
+                        </dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>

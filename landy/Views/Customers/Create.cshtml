@@ -1,0 +1,82 @@
+@model CreateCustomerDto
+@{
+    ViewData["Title"] = "Register New Customer";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fw-bold mb-0">Register New Customer</h3>
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to List</a>
+                </div>
+                <p class="text-muted small mb-4">
+                    Register an official business customer record into Ardak. Accidental duplicates by phone number or email are prevented.
+                </p>
+
+                @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ContainsKey(string.Empty))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @Html.ValidationSummary(true, "", new { @class = "mb-0" })
+                    </div>
+                }
+
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="FullName" class="form-label fw-semibold"></label>
+                            <input asp-for="FullName" class="form-control" placeholder="Legal client / business name" autofocus />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PhoneNumber" class="form-label fw-semibold"></label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="+966 50 123 4567" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Email" class="form-label fw-semibold"></label>
+                            <input asp-for="Email" class="form-control" placeholder="client@company.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="NationalIdOrTaxNumber" class="form-label fw-semibold"></label>
+                            <input asp-for="NationalIdOrTaxNumber" class="form-control" placeholder="National ID / Commercial Reg / Tax #" />
+                            <span asp-validation-for="NationalIdOrTaxNumber" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label fw-semibold"></label>
+                        <input asp-for="Address" class="form-control" placeholder="District, Street, City" />
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-1">
+                            <label asp-for="InternalNotes" class="form-label fw-semibold mb-0"></label>
+                            <span class="badge bg-warning text-dark ms-2">Staff Only &bull; Confidential</span>
+                        </div>
+                        <textarea asp-for="InternalNotes" class="form-control" rows="3" placeholder="Enter private internal notes, background information, or preliminary observations..."></textarea>
+                        <span asp-validation-for="InternalNotes" class="text-danger small"></span>
+                        <div class="form-text">This information is strictly confidential and will never be shown on the customer portal.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">Save Customer Record</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

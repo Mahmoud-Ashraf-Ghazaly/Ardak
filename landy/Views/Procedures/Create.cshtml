@@ -1,0 +1,187 @@
+@model Ardak.Application.DTOs.CreateProcedureDto
+@using Ardak.Model.Enums
+@{
+    ViewData["Title"] = "New Procedure";
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Procedures</a></li>
+        <li class="breadcrumb-item active">New Procedure</li>
+    </ol>
+</nav>
+
+<h1 class="h3 mb-4"><i class="bi bi-clipboard2-plus me-2"></i>New Procedure</h1>
+
+<form asp-action="Create" method="post">
+    <input type="hidden" asp-for="PropertyId" />
+
+    <div class="row g-4">
+
+        {{!-- Property & Classification --}}
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Property & Classification</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="PropertyId" class="form-label"></label>
+                        <select asp-for="PropertyId" asp-items="@ViewBag.Properties" class="form-select">
+                            <option value="">— Select Property —</option>
+                        </select>
+                        <span asp-validation-for="PropertyId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Type" class="form-label"></label>
+                        <select asp-for="Type" asp-items="Html.GetEnumSelectList<ProcedureType>()" class="form-select" id="selType"></select>
+                        <span asp-validation-for="Type" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3" id="typeLabelRow">
+                        <label asp-for="TypeLabel" class="form-label"></label>
+                        <input asp-for="TypeLabel" class="form-control" />
+                        <span asp-validation-for="TypeLabel" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ApplicationNumber" class="form-label"></label>
+                        <input asp-for="ApplicationNumber" class="form-control" />
+                        <span asp-validation-for="ApplicationNumber" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="ResponsibleAuthority" class="form-label"></label>
+                        <input asp-for="ResponsibleAuthority" class="form-control" />
+                        <span asp-validation-for="ResponsibleAuthority" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{!-- Status & Timeline --}}
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Status & Timeline</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="Status" class="form-label"></label>
+                        <select asp-for="Status" asp-items="Html.GetEnumSelectList<ProcedureStatus>()" class="form-select"></select>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="SubmissionDate" class="form-label"></label>
+                        <input asp-for="SubmissionDate" type="date" class="form-control" />
+                        <span asp-validation-for="SubmissionDate" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="NextActionDeadline" class="form-label"></label>
+                        <input asp-for="NextActionDeadline" type="date" class="form-control" />
+                        <span asp-validation-for="NextActionDeadline" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="NextActionDescription" class="form-label"></label>
+                        <textarea asp-for="NextActionDescription" class="form-control" rows="2"></textarea>
+                        <span asp-validation-for="NextActionDescription" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MissingDocuments" class="form-label"></label>
+                        <textarea asp-for="MissingDocuments" class="form-control" rows="3"
+                                  placeholder="List any missing or outstanding documents…"></textarea>
+                        <span asp-validation-for="MissingDocuments" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{!-- Financial Tracking --}}
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold"><i class="bi bi-cash-coin me-1"></i> Financial Tracking (Internal)</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="TotalFee" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">SAR</span>
+                            <input asp-for="TotalFee" type="number" step="0.01" min="0" class="form-control" />
+                        </div>
+                        <span asp-validation-for="TotalFee" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="AmountPaid" class="form-label"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">SAR</span>
+                            <input asp-for="AmountPaid" type="number" step="0.01" min="0" class="form-control" />
+                        </div>
+                        <span asp-validation-for="AmountPaid" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{!-- Internal Notes --}}
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-info">
+                <div class="card-header fw-semibold text-info-emphasis bg-info-subtle">
+                    <i class="bi bi-lock me-1"></i> Internal Notes (Confidential)
+                </div>
+                <div class="card-body">
+                    <textarea asp-for="InternalNotes" class="form-control" rows="6"
+                              placeholder="Internal staff notes — never visible to customers…"></textarea>
+                    <span asp-validation-for="InternalNotes" class="text-danger small"></span>
+                </div>
+            </div>
+        {{!-- Customer Visibility & Approved Updates --}}
+        <div class="col-12">
+            <div class="card shadow-sm border-warning">
+                <div class="card-header fw-semibold text-warning-emphasis bg-warning-subtle">
+                    <i class="bi bi-eye me-1"></i> Customer Visibility Setting (Private by default)
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input asp-for="IsCustomerVisible" class="form-check-input" type="checkbox" id="chkCustVisible" />
+                        <label class="form-check-label fw-semibold" for="chkCustVisible">
+                            Allow Customer to View Procedure Status in Customer Portal
+                        </label>
+                        <div class="form-text">
+                            By default, legal procedures are strictly private. Check this box only when the client is explicitly approved to track this procedure status.
+                        </div>
+                    </div>
+                    <label asp-for="CustomerUpdateNotes" class="form-label fw-semibold"></label>
+                    <textarea asp-for="CustomerUpdateNotes" class="form-control" rows="3"
+                              placeholder="Approved client-facing update message (e.g. 'Survey inspection scheduled for next week.'). Financial details and internal notes are never disclosed."></textarea>
+                    <span asp-validation-for="CustomerUpdateNotes" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-floppy me-1"></i> Create Procedure
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Show/hide TypeLabel based on selected type
+        const selType = document.getElementById('selType');
+        const typeLabelRow = document.getElementById('typeLabelRow');
+
+        function toggleTypeLabel() {
+            // ProcedureType.Other == 99
+            typeLabelRow.style.display = selType.value == '99' ? '' : 'none';
+        }
+
+        selType.addEventListener('change', toggleTypeLabel);
+        toggleTypeLabel();
+    </script>
+}

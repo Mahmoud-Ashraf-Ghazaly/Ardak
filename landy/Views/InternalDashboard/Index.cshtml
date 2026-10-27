@@ -1,0 +1,516 @@
+@model Ardak.Application.DTOs.AdminDashboardDto
+@using Ardak.Model.Enums
+@{
+    ViewData["Title"] = "Executive Admin Dashboard";
+    bool isSuperAdmin = ViewBag.IsSuperAdmin == true;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h1 class="h3 fw-bold mb-0">
+                <i class="bi bi-speedometer2 text-primary me-2"></i>Executive Admin Dashboard
+            </h1>
+            @if (isSuperAdmin)
+            {
+                <span class="badge bg-danger fs-7">SuperAdmin</span>
+            }
+            else
+            {
+                <span class="badge bg-primary fs-7">Administrator</span>
+            }
+        </div>
+        <p class="text-muted mb-0 small">
+            Ardak Internal Management &mdash; Signed in as: <strong>@ViewBag.UserEmail</strong>
+        </p>
+    </div>
+
+    {{!-- Top Quick Action Buttons --}}
+    <div class="d-flex gap-2 flex-wrap">
+        @if (isSuperAdmin)
+        {
+            <a asp-controller="AdminManagement" asp-action="Index" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-shield-lock me-1"></i> Admin Console
+            </a>
+        }
+        <a asp-controller="Customers" asp-action="Create" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-person-plus me-1"></i> New Customer
+        </a>
+        <a asp-controller="Properties" asp-action="Create" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-building-add me-1"></i> New Property
+        </a>
+        <a asp-controller="Procedures" asp-action="Create" class="btn btn-outline-info btn-sm">
+            <i class="bi bi-clipboard-plus me-1"></i> New Procedure
+        </a>
+        <a asp-controller="Documents" asp-action="Upload" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-cloud-arrow-up me-1"></i> Upload Document
+        </a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+{{!-- Management Navigation Cards --}}
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold small text-uppercase">Customers</span>
+                    <span class="p-2 rounded bg-primary-subtle text-primary"><i class="bi bi-people fs-5"></i></span>
+                </div>
+                <h3 class="fw-bold mb-1">@Model.TotalCustomers</h3>
+                <div class="small text-muted mb-3">
+                    <span class="text-success fw-semibold">@Model.ActiveCustomers</span> active profiles
+                </div>
+                <a asp-controller="Customers" asp-action="Index" class="btn btn-sm btn-light w-100 text-primary fw-semibold">
+                    Manage Customers &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold small text-uppercase">Properties</span>
+                    <span class="p-2 rounded bg-success-subtle text-success"><i class="bi bi-buildings fs-5"></i></span>
+                </div>
+                <h3 class="fw-bold mb-1">@Model.TotalProperties</h3>
+                <div class="small text-muted mb-3">
+                    <span class="text-success fw-semibold">@Model.ActiveProperties</span> active records
+                </div>
+                <a asp-controller="Properties" asp-action="Index" class="btn btn-sm btn-light w-100 text-success fw-semibold">
+                    Manage Properties &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold small text-uppercase">Procedures</span>
+                    <span class="p-2 rounded bg-info-subtle text-info"><i class="bi bi-clipboard2-check fs-5"></i></span>
+                </div>
+                <h3 class="fw-bold mb-1">@Model.TotalProcedures</h3>
+                <div class="small text-muted mb-3">
+                    <span class="text-warning fw-semibold">@Model.PendingProceduresCount</span> currently pending
+                </div>
+                <a asp-controller="Procedures" asp-action="Index" class="btn btn-sm btn-light w-100 text-info fw-semibold">
+                    Manage Procedures &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold small text-uppercase">Documents</span>
+                    <span class="p-2 rounded bg-secondary-subtle text-secondary"><i class="bi bi-file-earmark-lock fs-5"></i></span>
+                </div>
+                <h3 class="fw-bold mb-1">@Model.TotalDocuments</h3>
+                <div class="small text-muted mb-3">
+                    Protected secure repository
+                </div>
+                <a asp-controller="Documents" asp-action="Index" class="btn btn-sm btn-light w-100 text-secondary fw-semibold">
+                    Manage Documents &rarr;
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{!-- Actionable KPI Highlights --}}
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-start border-4 border-warning h-100">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold">Pending Procedures</div>
+                        <h4 class="fw-bold mb-0 text-warning-emphasis">@Model.PendingProceduresCount</h4>
+                    </div>
+                    <i class="bi bi-hourglass-split fs-2 text-warning"></i>
+                </div>
+                <div class="small text-muted mt-1">Requires authority or team processing</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-start border-4 border-danger h-100">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold">Overdue Deadlines</div>
+                        <h4 class="fw-bold mb-0 text-danger">@Model.OverdueDeadlinesCount</h4>
+                    </div>
+                    <i class="bi bi-exclamation-triangle-fill fs-2 text-danger"></i>
+                </div>
+                <div class="small text-muted mt-1">Past target completion date</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-start border-4 border-info h-100">
+            <div class="card-body py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold">Missing Documents</div>
+                        <h4 class="fw-bold mb-0 text-info-emphasis">@Model.ProceduresWithMissingDocsCount</h4>
+                    </div>
+                    <i class="bi bi-file-earmark-x fs-2 text-info"></i>
+                </div>
+                <div class="small text-muted mt-1">Awaiting client/authority certificates</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{!-- Grouping & Breakdown Grids --}}
+<div class="row g-4 mb-4">
+    {{!-- Property Breakdown --}}
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 fw-bold">
+                <i class="bi bi-pie-chart me-1 text-primary"></i> Property Distribution
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <h6 class="small text-muted text-uppercase fw-semibold mb-2">By Property Type</h6>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var kv in Model.PropertiesByType)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                    <span>@kv.Key</span>
+                                    <span class="badge bg-primary rounded-pill">@kv.Value</span>
+                                </li>
+                            }
+                            @if (!Model.PropertiesByType.Any())
+                            {
+                                <li class="list-group-item text-muted small px-0">No properties recorded.</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-sm-6">
+                        <h6 class="small text-muted text-uppercase fw-semibold mb-2">By Operational Status</h6>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var kv in Model.PropertiesByStatus)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                    <span>@kv.Key</span>
+                                    <span class="badge bg-secondary rounded-pill">@kv.Value</span>
+                                </li>
+                            }
+                            @if (!Model.PropertiesByStatus.Any())
+                            {
+                                <li class="list-group-item text-muted small px-0">No statuses recorded.</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{!-- Procedures by Status --}}
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3 fw-bold">
+                <i class="bi bi-bar-chart-steps me-1 text-info"></i> Procedures by Status
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    @foreach (var kv in Model.ProceduresByStatus)
+                    {
+                        <div class="col-sm-6">
+                            <div class="p-2 border rounded d-flex justify-content-between align-items-center">
+                                <span class="fw-semibold small">@kv.Key</span>
+                                <span class="badge bg-info-subtle text-info-emphasis border border-info">@kv.Value</span>
+                            </div>
+                        </div>
+                    }
+                    @if (!Model.ProceduresByStatus.Any())
+                    {
+                        <div class="col-12 text-muted small py-3">No legal procedures recorded yet.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{!-- Actionable Lists Tabs --}}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-2">
+        <ul class="nav nav-tabs card-header-tabs" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-semibold" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab">
+                    <i class="bi bi-hourglass-split me-1 text-warning"></i> Pending Procedures (@Model.PendingProcedures.Count)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="missing-tab" data-bs-toggle="tab" data-bs-target="#missing" type="button" role="tab">
+                    <i class="bi bi-file-earmark-x me-1 text-info"></i> Missing Documents (@Model.ProceduresWithMissingDocuments.Count)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold" id="deadlines-tab" data-bs-toggle="tab" data-bs-target="#deadlines" type="button" role="tab">
+                    <i class="bi bi-alarm me-1 text-danger"></i> Upcoming Deadlines (@Model.UpcomingDeadlines.Count)
+                </button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body p-0">
+        <div class="tab-content" id="dashboardTabsContent">
+            {{!-- Tab 1: Pending Procedures --}}
+            <div class="tab-pane fade show active" id="pending" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Type</th>
+                                <th>Property</th>
+                                <th>Authority</th>
+                                <th>Status</th>
+                                <th>Next Action Deadline</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.PendingProcedures.Any())
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        <i class="bi bi-check-circle text-success fs-4 d-block mb-1"></i>
+                                        All procedures are completed or none are currently pending.
+                                    </td>
+                                </tr>
+                            }
+                            @foreach (var p in Model.PendingProcedures)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@p.TypeLabel</span></td>
+                                    <td>
+                                        <a asp-controller="Properties" asp-action="Details" asp-route-id="@p.PropertyId" class="fw-semibold text-decoration-none">
+                                            @p.PropertyReferenceNumber
+                                        </a>
+                                        <div class="small text-muted">@p.PropertyTitle</div>
+                                    </td>
+                                    <td>@(p.ResponsibleAuthority ?? "—")</td>
+                                    <td><partial name="_ProcedureStatusBadge" model="p.Status" /></td>
+                                    <td>
+                                        @if (p.NextActionDeadline.HasValue)
+                                        {
+                                            var css = p.HasOverdueDeadline ? "text-danger fw-bold" : "text-body";
+                                            <span class="@css">
+                                                @p.NextActionDeadline.Value.ToString("dd MMM yyyy")
+                                                @if (p.HasOverdueDeadline)
+                                                {
+                                                    <span class="badge bg-danger ms-1">Overdue</span>
+                                                }
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-controller="Procedures" asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary">
+                                            View
+                                        </a>
+                                        <a asp-controller="Procedures" asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary">
+                                            Update
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{!-- Tab 2: Missing Documents --}}
+            <div class="tab-pane fade" id="missing" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Type</th>
+                                <th>Property</th>
+                                <th>Outstanding Requirements</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.ProceduresWithMissingDocuments.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="bi bi-file-earmark-check text-success fs-4 d-block mb-1"></i>
+                                        No outstanding documents required on active procedures.
+                                    </td>
+                                </tr>
+                            }
+                            @foreach (var p in Model.ProceduresWithMissingDocuments)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-secondary">@p.TypeLabel</span></td>
+                                    <td>
+                                        <a asp-controller="Properties" asp-action="Details" asp-route-id="@p.PropertyId" class="fw-semibold text-decoration-none">
+                                            @p.PropertyReferenceNumber
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="text-warning-emphasis">
+                                            <i class="bi bi-exclamation-circle me-1"></i>
+                                            @p.NextActionDescription
+                                        </span>
+                                    </td>
+                                    <td><partial name="_ProcedureStatusBadge" model="p.Status" /></td>
+                                    <td class="text-end">
+                                        <a asp-controller="Documents" asp-action="Upload" asp-route-propertyId="@p.PropertyId" asp-route-procedureId="@p.Id" class="btn btn-sm btn-outline-success me-1">
+                                            <i class="bi bi-cloud-arrow-up"></i> Upload Doc
+                                        </a>
+                                        <a asp-controller="Procedures" asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{!-- Tab 3: Upcoming Deadlines --}}
+            <div class="tab-pane fade" id="deadlines" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Deadline</th>
+                                <th>Type</th>
+                                <th>Property</th>
+                                <th>Next Action / Task</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.UpcomingDeadlines.Any())
+                            {
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">
+                                        No upcoming deadlines scheduled.
+                                    </td>
+                                </tr>
+                            }
+                            @foreach (var p in Model.UpcomingDeadlines)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (p.NextActionDeadline.HasValue)
+                                        {
+                                            var css = p.HasOverdueDeadline ? "text-danger fw-bold" : "text-body fw-semibold";
+                                            <span class="@css">
+                                                @p.NextActionDeadline.Value.ToString("dd MMM yyyy")
+                                                @if (p.HasOverdueDeadline)
+                                                {
+                                                    <span class="badge bg-danger ms-1">Overdue</span>
+                                                }
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td><span class="badge bg-secondary">@p.TypeLabel</span></td>
+                                    <td>
+                                        <a asp-controller="Properties" asp-action="Details" asp-route-id="@p.PropertyId" class="text-decoration-none">
+                                            @p.PropertyReferenceNumber
+                                        </a>
+                                    </td>
+                                    <td>@(p.NextActionDescription ?? "Review pending")</td>
+                                    <td><partial name="_ProcedureStatusBadge" model="p.Status" /></td>
+                                    <td class="text-end">
+                                        <a asp-controller="Procedures" asp-action="Details" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary">
+                                            View
+                                        </a>
+                                        <a asp-controller="Procedures" asp-action="Edit" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary">
+                                            Update
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{!-- Recent Administrative Activity Feed --}}
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3 fw-bold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-clock-history me-1 text-primary"></i> Recent Administrative Activity</span>
+        <span class="badge bg-light text-muted border">Live Activity Feed</span>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.RecentActivities.Any())
+        {
+            <div class="text-center text-muted py-4">No recent activity recorded.</div>
+        }
+        else
+        {
+            <div class="list-group list-group-flush">
+                @foreach (var act in Model.RecentActivities)
+                {
+                    <div class="list-group-item p-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="badge @act.BadgeCss me-2">@act.ActivityType</span>
+                                <strong>@act.Title</strong>
+                                <div class="text-muted small mt-1">@act.Description</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small text-muted">@act.TimestampUtc.ToString("dd MMM yyyy HH:mm") UTC</div>
+                                @if (!string.IsNullOrWhiteSpace(act.LinkController) && act.LinkId.HasValue)
+                                {
+                                    <a asp-controller="@act.LinkController" asp-action="@act.LinkAction" asp-route-id="@act.LinkId.Value" class="btn btn-sm btn-link p-0 text-decoration-none">
+                                        Open Record &rarr;
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
